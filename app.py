@@ -8,6 +8,18 @@ import pandas as pd
 import json
 from utils import equalizer
 
+import streamlit.components.v1 as components
+import os
+root_dir= os.path.dirname(os.path.abspath(__file__))
+build_dir= os.path.join(root_dir,"Virtical_slider","vertical_slider","frontend","build")
+_vertical_slider = components.declare_component(
+    "Vertical Silder",
+    path=build_dir
+)
+
+def VerticalSlider(minValue=0, maxValue=100, step=1,default=0,height=400,label=None,disabled=False,key=None):
+    return _vertical_slider(minValue=minValue,maxValue=maxValue,step=step,default=default,height=height,label=label,disabled=disabled,key=key)
+
 st.set_page_config(
     page_title="Equalizer",
     page_icon="🔊",
@@ -23,7 +35,7 @@ if "time" not in st.session_state:
     st.session_state.time=np.linspace(0,5,1000)
 
 
-col1, col2= st.columns([0.7,2])
+col1, col2, col3= st.columns([0.7,1,1])
 with col1:
     mode=st.selectbox("Mode",data["modes"])
     uploader= st.file_uploader("upload wav")
@@ -40,6 +52,7 @@ if uploader:
         st.session_state["time"]=np.linspace(0,signal.shape[0],signal.shape[0])
         mono= signal.copy()
         st.session_state["sample_rate"]=sample_rate
+        st.session_state["original_signal"]=mono
         st.session_state["transformed_signal"]= rfft(mono)
         st.session_state["points_per_freq"] = len(st.session_state["transformed_signal"]) / (sample_rate / 2)
         st.session_state.is_uploaded=False
@@ -61,16 +74,25 @@ else:
 cols= st.columns([ 1 for i in range(data[mode]["num_sliders"])])
 for index,i in enumerate(cols):
     with i:
-        svs.vertical_slider(key=f"slider{index}",default_value=0.0,min_value=-12.0,max_value=12.0,step=0.1, )
+        VerticalSlider(default=0.0,minValue=-12.0,maxValue=12.0,step=0.1,height=300,label=data[mode]["sliders"][index]["label"],key=f"slider{index}" )
 
 if uploader:
     with col6:
         st.write("Modified sound")
         st.audio("clean.wav")
 
-ploted_data= pd.DataFrame({"time":st.session_state.time[::300],"signal":returned_signal[::300]})
-df=ploted_data.iloc[0:1500]
-lines = alt.Chart(df).mark_line().encode(
+ploted_rec_data= pd.DataFrame({"time":st.session_state.time[::300],"signal":returned_signal[::300]})
+ploted_ori_data= pd.DataFrame({"time":st.session_state.time[::300],"signal":st.session_state["original_signal"][::300]})
+df1=ploted_rec_data.iloc[0:700]
+df2=ploted_ori_data.iloc[0:700]
+lines_rec = alt.Chart(df1).mark_line().encode(
+    x=alt.X('time:T', axis=alt.Axis(title='date',labels=False)),
+    y=alt.Y('signal:Q',axis=alt.Axis(title='value')),
+    ).properties(
+        width=600, 
+        height=300
+    ).configure_view(strokeWidth=0).configure_axis(grid=False, domain=False)
+lines_ori = alt.Chart(df2).mark_line().encode(
     x=alt.X('time:T', axis=alt.Axis(title='date',labels=False)),
     y=alt.Y('signal:Q',axis=alt.Axis(title='value')),
     ).properties(
@@ -88,15 +110,19 @@ def plot_animation(df):
     ).configure_view(strokeWidth=0).configure_axis(grid=False, domain=False)
     return lines
 
-N = ploted_data.shape[0] 
-burst = 1500       
-line_plot= col2.altair_chart(lines,use_container_width=True)
+N = ploted_rec_data.shape[0] 
+burst = 700       
+line_plot_rec= col2.altair_chart(lines_rec,use_container_width=True)
+line_plot_ori= col3.altair_chart(lines_ori,use_container_width=True)
 start_btn = col7.button('Start')
 
 if start_btn:
-    for i in range(1500,N-burst):
-        step_df = ploted_data.iloc[i:burst+i]       
-        lines = plot_animation(step_df)
-        line_plot.altair_chart(lines,use_container_width=True)
+    for i in range(700,N-burst):
+        step_df_rec = ploted_rec_data.iloc[i:burst+i]       
+        step_df_ori = ploted_ori_data.iloc[i:burst+i]       
+        lines_rec = plot_animation(step_df_rec)
+        lines_ori = plot_animation(step_df_ori)
+        line_plot_rec.altair_chart(lines_rec,use_container_width=True)
+        line_plot_ori.altair_chart(lines_ori,use_container_width=True)
         
         

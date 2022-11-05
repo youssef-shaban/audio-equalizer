@@ -18,14 +18,14 @@
   "music": {
     "num_sliders": 8,
     "sliders": [
-      { "label": "80Hz", "range": [[0, 80]] },
-      { "label": "240Hz", "range": [[81, 240]] },
-      { "label": "500Hz", "range": [[241, 500]] },
-      { "label": "800Hz", "range": [[501, 800]] },
-      { "label": "1.4KHz", "range": [[801, 1400]] },
-      { "label": "2KHz", "range": [[1401, 2000]] },
-      { "label": "3.5KHz", "range": [[2001, 3500]] },
-      { "label": "6KHz", "range": [[3501, 6000]] }
+      { "label": "Guitar", "range": [[80, 630]] },
+      { "label": "Flute", "range": [[250, 2500]] },
+      { "label": "Trumpet", "range": [[300, 1000]] },
+      { "label": "Cello", "range": [[63, 630]] },
+      { "label": "Kick Drum", "range": [[60, 250]] },
+      { "label": "Violin", "range": [[200, 3500]] },
+      { "label": "Xylophone", "range": [[700, 3500]] },
+      { "label": "Piano", "range": [[28, 4100]] }
     ]
   }
 }

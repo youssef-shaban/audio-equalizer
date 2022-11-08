@@ -4,7 +4,7 @@ from scipy.fft import rfft, irfft
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils import equalizer, initial_time_graph, plot_animation
+from utils import equalizer, initial_time_graph, plot_animation,plot_spectrogram
 import streamlit.components.v1 as components
 import json
 import os
@@ -41,16 +41,18 @@ if "original_signal" not in st.session_state:
     st.session_state.original_signal = np.zeros(1000)
 if "sample_rate" not in st.session_state:
     st.session_state.sample_rate = 10
+if "graph_position" not in st.session_state:
+    st.session_state.graph_position = 1
 
-col1, col2, col3 = st.columns([0.7, 1, 1])
-with col1:
+topCol1, topCol2= st.columns([0.7, 2])
+with topCol1:
     mode = st.selectbox("Mode", data["modes"])
     uploader = st.file_uploader("upload wav")
 
-col5, col6, col7 = st.columns([0.7, 1, 1])
-cols = [0.2 for i in range(data[mode]["num_sliders"])]
-cols = st.columns([0.7, *cols])
-for index, i in enumerate(cols[1:]):
+midCol1, midCol2, midCol3 = st.columns([0.7, 1, 1])
+bottomCols = [0.2 for i in range(data[mode]["num_sliders"])]
+bottomCols = st.columns([0.7, *bottomCols])
+for index, i in enumerate(bottomCols[1:]):
     with i:
         VerticalSlider(default=0.0, minValue=-15.0, maxValue=15.0, step=0.1, height=200,
                        label=data[mode]["sliders"][index]["label"], key=f"slider{mode}{index}")
@@ -75,14 +77,16 @@ if uploader:
             gain_list.append(0)
     transformed = equalizer(data[mode]["sliders"], st.session_state["transformed_signal"],
                             st.session_state["points_per_freq"], gain_list)
-    returned_signal = np.asarray(irfft(transformed), dtype=np.int16)
-    modified_audio = write("clean.wav", st.session_state["sample_rate"], returned_signal)
+    returned_signal = irfft(transformed)
+    modified_audio = write("clean.wav", st.session_state["sample_rate"], returned_signal.astype(np.int16))
 else:
     st.session_state.is_uploaded = True
     st.session_state.time = np.linspace(0, 5, 1000)
+    st.session_state.original_signal = np.zeros(1000)
+    returned_signal = np.zeros(1000)
 
 if uploader:
-    with col5:
+    with bottomCols[0]:
         st.write("Original Sound")
         st.audio(uploader)
         st.write("Modified sound")
@@ -91,30 +95,64 @@ if uploader:
 ploted_rec_data = pd.DataFrame({"time": st.session_state.time[::300], "signal": returned_signal[::300]})
 ploted_ori_data = pd.DataFrame(
     {"time": st.session_state.time[::300], "signal": st.session_state["original_signal"][::300]})
-lines_rec = initial_time_graph(ploted_rec_data.iloc[0:700])
-lines_ori = initial_time_graph(ploted_ori_data.iloc[0:700])
+position=st.session_state["graph_position"]
+line_chart = initial_time_graph(ploted_ori_data.iloc[position:position+700],ploted_rec_data.iloc[position:position+700])
+line_plot_rec = topCol2.altair_chart(line_chart, use_container_width=True)
 
-N = ploted_rec_data.shape[0]
-burst = 700
-line_plot_rec = col2.altair_chart(lines_ori, use_container_width=True)
-line_plot_ori = col3.altair_chart(lines_rec, use_container_width=True)
-fig, ax = plt.subplots()
-fig.set_figheight(4)
-fig.set_figwidth(10)
-ax.specgram(st.session_state["original_signal"], Fs=st.session_state["sample_rate"], cmap='hsv', NFFT=256)
-ax.colorbar()
-col6.pyplot(fig, clear_figure=True)
-fig, ax = plt.subplots()
-fig.set_figheight(4)
-fig.set_figwidth(10)
-ax.specgram(returned_signal, Fs=st.session_state["sample_rate"], cmap='hsv', NFFT=256)
-col7.pyplot(fig, clear_figure=True)
-start_btn = col7.button('Start')
-if start_btn:
-    for i in range(burst, N - burst):
+show_spec=midCol1.checkbox("generate Spectogram")
+if show_spec:
+    fig1, ax = plt.subplots()
+    fig1=plot_spectrogram(fig1,ax,st.session_state["original_signal"])
+    midCol2.pyplot(fig1, clear_figure=True)
+    fig2, ax = plt.subplots()
+    fig2=plot_spectrogram(fig2,ax,returned_signal)
+    midCol3.pyplot(fig2, clear_figure=True)
+else:
+    fig1, ax = plt.subplots()
+    fig1.set_figheight(4)
+    fig1.set_figwidth(10)
+    midCol2.pyplot(fig1, clear_figure=True)
+    fig2, ax = plt.subplots()
+    fig2.set_figheight(4)
+    fig2.set_figwidth(10)
+    midCol3.pyplot(fig2, clear_figure=True)
+
+
+forward_btn = midCol1.button('Forward')
+backword_btn = midCol1.button('Backward')
+stop_btn = midCol1.button('stop')
+pause_btn = midCol1.button('Pause')
+speed_slider= midCol1.slider(label="Graph Speed",step=1,min_value=1,max_value=5)
+if forward_btn:
+    N = ploted_rec_data.shape[0]
+    burst = int(len(ploted_ori_data)/4)
+    for i in range(st.session_state["graph_position"]+burst, N - burst,speed_slider):
+        st.session_state["graph_position"]=i
         step_df_rec = ploted_rec_data.iloc[i:burst + i]
         step_df_ori = ploted_ori_data.iloc[i:burst + i]
-        lines_rec = plot_animation(step_df_rec)
-        lines_ori = plot_animation(step_df_ori)
-        line_plot_rec.altair_chart(lines_rec, use_container_width=True)
-        line_plot_ori.altair_chart(lines_ori, use_container_width=True)
+        chart= plot_animation(step_df_ori,step_df_rec)
+        line_plot_rec.altair_chart(chart, use_container_width=True)
+    position=st.session_state["graph_position"]
+    line_chart = initial_time_graph(ploted_ori_data.iloc[position:position+burst],ploted_rec_data.iloc[position:position+burst])
+    line_plot_rec.altair_chart(line_chart)
+    st.session_state["graph_position"]=0
+if backword_btn:
+    N = ploted_rec_data.shape[0]
+    burst = int(len(ploted_ori_data)/4)
+    for i in range(st.session_state["graph_position"]+burst, N - burst,speed_slider):
+        st.session_state["graph_position"]=i
+        step_df_rec = ploted_rec_data.iloc[N-burst-i:N-i]
+        step_df_ori = ploted_ori_data.iloc[N-burst-i:N-i]
+        chart= plot_animation(step_df_ori,step_df_rec)
+        line_plot_rec.altair_chart(chart, use_container_width=True)
+
+    position=st.session_state["graph_position"]
+    line_chart = initial_time_graph(ploted_ori_data.iloc[position:position+burst],ploted_rec_data.iloc[position:position+burst])    
+    line_plot_rec.altair_chart(line_chart)
+    st.session_state["graph_position"]=0
+if stop_btn:
+    st.session_state["graph_position"]=0
+    st.stop()
+if pause_btn:
+    st.stop()
+

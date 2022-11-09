@@ -1,5 +1,5 @@
 {
-  "modes": ["equalizer", "music"],
+  "modes": ["equalizer", "music","vowels"],
   "equalizer": {
     "num_sliders": 10,
     "sliders": [
@@ -26,6 +26,21 @@
       { "label": "Violin", "range": [[200, 3500]] },
       { "label": "Xylophone", "range": [[700, 3500]] },
       { "label": "Piano", "range": [[28, 4100]] }
+    ]
+  },
+  "vowels": {
+    "num_sliders": 10,
+    "sliders": [
+      { "label": "i", "range": [[230, 250],[2390,2410]] },
+      { "label": "y", "range": [[225, 245],[2090,2110]] },
+      { "label": "e", "range": [[380, 400],[2290,2310]] },
+      { "label": "a", "range": [[840, 860],[1600,1620]] },
+      { "label": "ɑ", "range": [[740, 760],[930,950]] },
+      { "label": "ɒ", "range": [[690,710 ],[750,770]] },
+      { "label": "o", "range": [[350, 370],[630,650]] },
+      { "label": "u", "range": [[240, 260],[585,605]] },
+      { "label": "œ", "range": [[575, 595],[1700,1720]] },
+      { "label": "ɶ", "range": [[810,830 ],[1520,1540]] }
     ]
   }
 }

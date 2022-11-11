@@ -23,24 +23,25 @@ def equalizer(mode, signal, points_per_freq, gainsdb_list):
     return equalizer_signal
 
 
-def initial_time_graph(df1,df2):
-    resize = alt.selection_interval(bind='scales')
+def initial_time_graph(df1,df2,resize):
     chart1 = alt.Chart(df1).mark_line().encode(
-    x=alt.X('time:T', axis=alt.Axis(title='date',labels=False)),
-    y=alt.Y('signal:Q',axis=alt.Axis(title='value'))
+    x=alt.X('time:T', axis=alt.Axis(title='time',labels=False)),
+    y=alt.Y('signal:Q',axis=alt.Axis(title='Amplitude'))
     ).properties(
-        width=600,
-        height=220
+        width=550,
+        height=220,
+        title="Original Audio"
     ).add_selection(
         resize
     )
 
     chart2 = alt.Chart(df2).mark_line().encode(
-        x=alt.X('time:T', axis=alt.Axis(title='date',labels=False)),
-        y=alt.Y('signal:Q',axis=alt.Axis(title='value'))
+        x=alt.X('time:T', axis=alt.Axis(title='time',labels=False)),
+        y=alt.Y('signal:Q',axis=alt.Axis(title='Amplitude'))
     ).properties(
-        width=600,
-        height=220
+        width=550,
+        height=220,
+        title="Modified Audio"
     ).add_selection(
         resize
     )
@@ -50,21 +51,27 @@ def initial_time_graph(df1,df2):
     return chart
 
 
-def plot_animation(df1,df2):
+def plot_animation(df1,df2,resize):
     chart1 = alt.Chart(df1).mark_line().encode(
-    x=alt.X('time:T', axis=alt.Axis(title='date',labels=False)),
-    y=alt.Y('signal:Q',axis=alt.Axis(title='value'))
+    x=alt.X('time:T', axis=alt.Axis(title='time',labels=False)),
+    y=alt.Y('signal:Q',axis=alt.Axis(title='Amplitude'))
     ).properties(
-        width=400,
-        height=240
+        width=550,
+        height=230,
+        title="Original Audio"
+    ).add_selection(
+        resize
     )
 
     chart2 = alt.Chart(df2).mark_line().encode(
-        x=alt.X('time:T', axis=alt.Axis(title='date',labels=False)),
-        y=alt.Y('signal:Q',axis=alt.Axis(title='value'))
+        x=alt.X('time:T', axis=alt.Axis(title='time',labels=False)),
+        y=alt.Y('signal:Q',axis=alt.Axis(title='Amplitude'))
     ).properties(
-        width=400,
-        height=240
+        width=550,
+        height=230,
+        title="Modified Audio"
+    ).add_selection(
+        resize
     )
 
     chart=alt.concat(chart1, chart2)
@@ -82,7 +89,12 @@ def plot_spectrogram(fig,ax,signal):
 
 def plot_spectrogram2(Signal):
     f, t, Sxx=signal.spectrogram(Signal)
+    Sxx=np.round(Sxx,6)
+    
     fig=go.Figure(data=go.Heatmap(
                     z=10*np.log10(Sxx), x=f, y=t))
-    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0),height=250,autosize=False)
+    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0),height=250,autosize=False,
+    xaxis_title="time(sec)",
+    yaxis_title="frequency(Hz)",
+    )
     return fig

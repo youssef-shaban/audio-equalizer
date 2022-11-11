@@ -1,10 +1,11 @@
 import streamlit as st
 from scipy.io.wavfile import read, write
 from scipy.fft import rfft, irfft
+from scipy.signal import chirp
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils import equalizer, initial_time_graph, plot_animation,plot_spectrogram
+from utils import equalizer, initial_time_graph, plot_animation,plot_spectrogram,plot_spectrogram2
 import streamlit.components.v1 as components
 import json
 import os
@@ -31,18 +32,20 @@ st.set_page_config(
 with open("modes.json") as infile:
     data = json.load(infile)
 
+
 if "is_uploaded" not in st.session_state:
     st.session_state.is_uploaded = True
 
-returned_signal = np.zeros(1000)
+
 if "time" not in st.session_state:
-    st.session_state.time = np.linspace(0, 5, 1000)
+    st.session_state.time = np.linspace(0, 15, 44100*30)
 if "original_signal" not in st.session_state:
-    st.session_state.original_signal = np.zeros(1000)
+    st.session_state.original_signal = chirp(st.session_state.time, f0=0, f1=20000, t1=15)
 if "sample_rate" not in st.session_state:
-    st.session_state.sample_rate = 10
+    st.session_state.sample_rate = 44100
 if "graph_position" not in st.session_state:
     st.session_state.graph_position = 1
+returned_signal = chirp(st.session_state["time"], f0=12.5, f1=2.5, t1=10, method='linear')
 
 topCol1, topCol2= st.columns([0.7, 2])
 with topCol1:
@@ -60,12 +63,15 @@ for index, i in enumerate(bottomCols[1:]):
 if uploader:
     if st.session_state.is_uploaded:
         sample_rate, signal = read(uploader)
+        if len(signal.shape)>1:
+            signal=signal[:,0]
         time = signal.shape[0] / sample_rate
         st.session_state["time"] = np.linspace(0, signal.shape[0], signal.shape[0])
         mono = signal.copy()
         st.session_state["sample_rate"] = sample_rate
         st.session_state["original_signal"] = mono
         st.session_state["transformed_signal"] = rfft(mono)
+        
         st.session_state["points_per_freq"] = len(st.session_state["transformed_signal"]) / (sample_rate / 2)
         st.session_state.is_uploaded = False
 
@@ -101,12 +107,10 @@ line_plot_rec = topCol2.altair_chart(line_chart, use_container_width=True)
 
 show_spec=midCol1.checkbox("generate Spectogram")
 if show_spec:
-    fig1, ax = plt.subplots()
-    fig1=plot_spectrogram(fig1,ax,st.session_state["original_signal"])
-    midCol2.pyplot(fig1, clear_figure=True)
-    fig2, ax = plt.subplots()
-    fig2=plot_spectrogram(fig2,ax,returned_signal)
-    midCol3.pyplot(fig2, clear_figure=True)
+    fig1=plot_spectrogram2(st.session_state["original_signal"])
+    midCol2.plotly_chart(fig1, use_container_width=True)
+    fig2=plot_spectrogram2(returned_signal)
+    midCol3.plotly_chart(fig2, use_container_width=True)
 else:
     fig1, ax = plt.subplots()
     fig1.set_figheight(4)
@@ -155,4 +159,5 @@ if stop_btn:
     st.stop()
 if pause_btn:
     st.stop()
+
 

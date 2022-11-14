@@ -5,24 +5,13 @@ from scipy.signal import chirp
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils import equalizer, initial_time_graph, plot_animation,plot_spectrogram2
-import streamlit.components.v1 as components
+from utils import equalizer, initial_time_graph, plot_animation,plot_spectrogram2,create_sliders,VerticalSlider,voice_shifting,basic_mode
 import json
-import os
 import altair as alt
+import streamlit_nested_layout
 
 
-root_dir = os.path.dirname(os.path.abspath(__file__))
-build_dir = os.path.join(root_dir, "Vertical_slider", "vertical_slider", "frontend", "build")
-_vertical_slider = components.declare_component(
-    "Vertical Slider",
-    path=build_dir
-)
 
-
-def VerticalSlider(minValue=0, maxValue=100, step=1, default=0, height=400, label=None, disabled=False, key=None):
-    return _vertical_slider(minValue=minValue, maxValue=maxValue, step=step, default=default, height=height,
-                            label=label, disabled=disabled, key=key)
 
 
 st.set_page_config(
@@ -51,7 +40,7 @@ if "default_file" not in st.session_state:
 if "resize" not in st.session_state:
     st.session_state.resize=alt.selection_interval(bind='scales')
 returned_signal = chirp(st.session_state["time"], f0=12.5, f1=2.5, t1=10, method='linear')
-
+data["equalizer"]["sliders"]=basic_mode(st.session_state.sample_rate,data["equalizer"]["num_sliders"])
 topCol1, topCol2= st.columns([0.7, 2])
 with topCol1:
     mode = st.selectbox("Mode", data["modes"])
@@ -59,11 +48,16 @@ with topCol1:
     
 
 midCol1, midCol2, midCol3 = st.columns([0.7, 1, 1])
-bottomCols = [0.2 for i in range(data[mode]["num_sliders"])]
+bottomCols = [(2/data[mode]["num_sliders"]) for i in range(data[mode]["num_sliders"])]
 bottomCols = st.columns([0.7, *bottomCols])
 for index, i in enumerate(bottomCols[1:]):
     with i:
-        VerticalSlider(default=0.0, minValue=-15.0, maxValue=15.0, step=0.1, height=200,
+        if mode=="Voice Shift":
+            create_sliders(index)
+            # VerticalSlider(default=0.0, minValue=-15.0, maxValue=15.0, step=0.1, height=200,
+            #            label=data[mode]["sliders"][index], key=f"slider{mode}{index}")
+        else: 
+            VerticalSlider(default=0.0, minValue=-15.0, maxValue=15.0, step=0.1, height=200,
                        label=data[mode]["sliders"][index]["label"], key=f"slider{mode}{index}")
 
 if uploader:
@@ -95,15 +89,23 @@ for i in range(data[mode]["num_sliders"]):
         gain_list.append(st.session_state[f"slider{mode}{i}"])
     except:
         gain_list.append(0)
-transformed = equalizer(data[mode]["sliders"], st.session_state["transformed_signal"],
+if mode=="Voice Shift":
+    
+    returned_signal= voice_shifting(st.session_state["original_signal"],st.session_state["sample_rate"],gain_list,np.max(st.session_state["original_signal"]))
+else:
+    transformed = equalizer(data[mode]["sliders"], st.session_state["transformed_signal"],
                         st.session_state["points_per_freq"], gain_list)
-returned_signal = irfft(transformed)
+    returned_signal = irfft(transformed)
 modified_audio = write("clean.wav", st.session_state["sample_rate"],returned_signal.astype(np.int16))
 with bottomCols[0]:
     st.write("Modified sound")
     st.audio("clean.wav")
 
-ploted_rec_data = pd.DataFrame({"time": st.session_state.time[::300], "signal": returned_signal[::300]})
+if mode=="Voice Shift":
+    changed_time= np.linspace(0, returned_signal.shape[0], returned_signal.shape[0])
+    ploted_rec_data = pd.DataFrame({"time": changed_time[::300], "signal": returned_signal[::300]})
+else:
+    ploted_rec_data = pd.DataFrame({"time": st.session_state.time[::300], "signal": returned_signal[::300]})
 ploted_ori_data = pd.DataFrame(
     {"time": st.session_state.time[::300], "signal": st.session_state["original_signal"][::300]})
 position=st.session_state["graph_position"]
@@ -126,12 +128,18 @@ else:
     fig2.set_figwidth(10)
     midCol3.pyplot(fig2, clear_figure=True)
 
-
-forward_btn = midCol1.button('Forward')
-stop_btn = midCol1.button('stop')
-pause_btn = midCol1.button('Pause')
-speed_slider= midCol1.slider(label="Graph Speed",step=1,min_value=1,max_value=5)
+with midCol1:
+    st.write("Graph Control")
+    subCol= st.columns([1,5])
+    subCol[0].write("")
+    placeholder=subCol[0].empty()
+    forward_btn = placeholder.button('Start')
+    # stop_btn = subCol[1].button('stop')
+    # pause_btn = subCol[2].button('Pause')
+    speed_slider= subCol[1].slider(label="Graph Speed",step=1,min_value=1,max_value=5)
 if forward_btn:
+    placeholder.empty()
+    pause_btn=placeholder.button('Pause')
     N = ploted_rec_data.shape[0]
     burst = int(len(ploted_ori_data)/4)
     for i in range(st.session_state["graph_position"]+burst, N - burst,speed_slider):
@@ -145,10 +153,10 @@ if forward_btn:
     line_plot_rec.altair_chart(line_chart)
     st.session_state["graph_position"]=0
 
-if stop_btn:
-    st.session_state["graph_position"]=0
-    st.stop()
-if pause_btn:
-    st.stop()
+try:    
+    if pause_btn:
+        st.stop()
+except:
+    pass
 
 

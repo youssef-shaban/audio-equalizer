@@ -6,6 +6,20 @@ import pandas as pd
 from scipy import signal
 import numpy as np
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
+import os
+import pyrubberband.pyrb as pyrd
+root_dir = os.path.dirname(os.path.abspath(__file__))
+build_dir = os.path.join(root_dir, "Vertical_slider", "vertical_slider", "frontend", "build")
+_vertical_slider = components.declare_component(
+    "Vertical Slider",
+    path=build_dir
+)
+
+
+def VerticalSlider(minValue=0, maxValue=100, step=1, default=0, height=400, label=None, disabled=False, key=None):
+    return _vertical_slider(minValue=minValue, maxValue=maxValue, step=step, default=default, height=height,
+                            label=label, disabled=disabled, key=key)
 
 def equalizer(mode, signal, points_per_freq, gainsdb_list):
     equalizer_signal = signal.copy()
@@ -22,7 +36,20 @@ def equalizer(mode, signal, points_per_freq, gainsdb_list):
             equalizer_signal[int(points_per_freq * Range[0]):int(points_per_freq * Range[1])] *= values
     return equalizer_signal
 
-
+def basic_mode(sample_rate,num_slider):
+    fmax=sample_rate//2
+    lower=0
+    upper=0
+    mode=[]
+    for i in range(num_slider):
+        upper= int(fmax*((i+1)/num_slider))
+        slider={
+            "label":f"{(upper+lower)//2}",
+            "range":[[lower,upper]]
+        }
+        mode.append(slider)
+        lower=upper
+    return mode
 def initial_time_graph(df1,df2,resize):
     chart1 = alt.Chart(df1).mark_line().encode(
     x=alt.X('time:T', axis=alt.Axis(title='time',labels=False)),
@@ -77,16 +104,6 @@ def plot_animation(df1,df2,resize):
     chart=alt.concat(chart1, chart2)
 
     return chart
-
-
-def plot_spectrogram(fig,ax,signal):
-    fig.set_figheight(4)
-    fig.set_figwidth(10)
-    specto1=ax.specgram(signal)
-    fig.colorbar(specto1[3], ax=ax)
-    return fig
-
-
 def plot_spectrogram2(Signal):
     f, t, Sxx=signal.spectrogram(Signal)
     Sxx=np.round(Sxx,6)
@@ -98,3 +115,21 @@ def plot_spectrogram2(Signal):
     yaxis_title="frequency(Hz)",
     )
     return fig
+def create_sliders(index):
+    if index==0:
+        VerticalSlider(default=0.0, minValue=-5.0, maxValue=5.0, step=0.1, height=200,
+                       label="Shift", key=f"sliderVoice Shift0")
+    elif index==1:
+        VerticalSlider(default=1.0, minValue=0.3, maxValue=5.0, step=0.1, height=200,
+                       label="Stretch", key=f"sliderVoice Shift1")
+
+def voice_shifting(signal, sampling_rate,gain_list,max_value):
+    output=signal.copy()
+    if gain_list[0]==None: gain_list[0]=0
+    if gain_list[1]==None: gain_list[1]=1
+    output= pyrd.pitch_shift(output,sampling_rate,gain_list[0])
+    output=pyrd.time_stretch(output,sampling_rate,gain_list[1])
+    if max(output)<10:
+        output*=max_value
+    return output
+    

@@ -1,5 +1,5 @@
 {
-  "modes": ["equalizer", "music", "vowels"],
+  "modes": ["equalizer", "music", "vowels", "Voice Shift"],
   "equalizer": {
     "num_sliders": 10,
     "sliders": [
@@ -35,7 +35,7 @@
         "label": "i",
         "range": [
           [200, 700],
-          [3700,5000]
+          [3700, 5000]
         ]
       },
       {
@@ -47,9 +47,7 @@
       },
       {
         "label": "a",
-        "range": [
-          [250, 1900]
-        ]
+        "range": [[250, 1900]]
       },
       {
         "label": "ɑ",
@@ -59,5 +57,9 @@
         ]
       }
     ]
+  },
+  "Voice Shift": {
+    "num_sliders": 2,
+    "sliders": ["Shifting", "Stretch"]
   }
 }

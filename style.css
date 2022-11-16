@@ -1,3 +1,4 @@
+<style>
 .MuiBox-root.jss1 {
   height: 500px;
 }
@@ -5,3 +6,52 @@
 .MuiSlider-thumb {
   display: none;
 }
+
+.block-container.css-18e3th9.egzxvld2 {padding: 0px 20px 0px 20px;}
+.container {
+  width: 50%;
+  height: 10%
+  padding-right: 50px;
+  padding-left: 50px;
+  margin-right: auto;
+  margin-left: auto;
+}
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+.samp-logo{
+  width: 85px;
+  height: 45px;
+  text-align: center;
+}
+
+footer {visibility: hidden;}
+.css-18ni7ap.e8zbici2 {display:None;}
+section[data-testid = "stFileUploadDropzone"] {height:40.4px;}
+.css-9ycgxx.exg6vvm12 { display:None; }
+.css-6kekos { width: 100%; }
+.css-6kekos.edgvbvh9 { display:hidden; }
+.st-dh { padding-right: 0.33333px; }
+.css-1aehpvj.euu6i2w0 { display: None; }
+.css-3fpxjl.e1tzin5v2 { display: None; }
+.MuiBox-root.css-1gnsnpc { align-items: center; }
+canvas.marks { max-width: 100%!important; }
+.js-plotly-plot .plotly .ease-bg {display: none}
+</style>

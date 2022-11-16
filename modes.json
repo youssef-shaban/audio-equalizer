@@ -1,6 +1,6 @@
 {
-  "modes": ["equalizer", "music", "vowels", "Voice Shift"],
-  "equalizer": {
+  "modes": ["Equalizer", "Music", "Vowels", "Pitch Shift"],
+  "Equalizer": {
     "num_sliders": 10,
     "sliders": [
       { "label": "80Hz", "range": [[0, 80]] },
@@ -15,21 +15,16 @@
       { "label": "14KHz", "range": [[9001, 14000]] }
     ]
   },
-  "music": {
-    "num_sliders": 8,
+  "Music": {
+    "num_sliders": 3,
     "sliders": [
-      { "label": "Guitar", "range": [[80, 630]] },
-      { "label": "Flute", "range": [[100, 2600]] },
-      { "label": "Trumpet", "range": [[300, 1000]] },
-      { "label": "Cello", "range": [[63, 630]] },
-      { "label": "Kick Drum", "range": [[60, 250]] },
-      { "label": "Violin", "range": [[200, 3500]] },
-      { "label": "Xylophone", "range": [[700, 3500]] },
-      { "label": "Piano", "range": [[28, 4100]] }
+      { "label": "Flute", "range": [[0, 700]] },
+      { "label": "Violin", "range": [[700, 2500]] },
+      { "label": "Trombone", "range": [[2500, 4000]] }
     ]
   },
-  "vowels": {
-    "num_sliders": 4,
+  "Vowels": {
+    "num_sliders": 5,
     "sliders": [
       {
         "label": "i",
@@ -55,10 +50,16 @@
           [300, 600],
           [900, 1700]
         ]
+      },
+      {
+        "label": "sh",
+        "range": [
+          [1200, 9000]
+        ]
       }
     ]
   },
-  "Voice Shift": {
+  "Pitch Shift": {
     "num_sliders": 2,
     "sliders": ["Shifting", "Stretch"]
   }

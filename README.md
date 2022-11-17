@@ -76,7 +76,7 @@ First Semester - Biomedical Digital Signal Processing (SBE3110) class project cr
 |-------------------------------------------------------|:-------:|:----:|
 | [Mahmoud Salman](https://github.com/mahmoud1yaser)  |    2    |  30   |
 | [Maye Khaled](https://github.com/mayekhaled0)         |    2    |  40  |
-| [Youssef Shaaban](https://github.com/youssef-shaban)  |    2    |   -  |
+| [Youssef Shaaban](https://github.com/youssef-shaban)  |    2    |   56  |
 | [Abdelrahman Saeed](https://github.com/Abdelrahman-Yousef)       |    1    |  -  |
 
 ### Submitted to:

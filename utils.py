@@ -49,7 +49,10 @@ def basic_mode(sample_rate, num_slider):
         mean = (upper + lower) // 2
         slider = {
             "label": f"{mean}",
-            "range": [[lower, upper]]
+            "range": [[lower, upper]],
+            "max_value": 15.0,
+            "min_value": -15.0,
+            "default":0.0
         }
         mode.append(slider)
         lower = upper
@@ -61,8 +64,8 @@ def initial_time_graph(df1, df2, resize):
         x=alt.X('time:T', axis=alt.Axis(title='time(sec)', labels=False)),
         y=alt.Y('signal:Q', axis=alt.Axis(title='Amplitude'))
     ).properties(
-        # width=550,
-        height=220,
+        width=600,
+        height=170,
         title="Original Audio"
     ).add_selection(
         resize
@@ -72,7 +75,8 @@ def initial_time_graph(df1, df2, resize):
         x=alt.X('time:T', axis=alt.Axis(title='time(sec)', labels=False)),
         y=alt.Y('signal:Q', axis=alt.Axis(title='Amplitude'))
     ).properties(
-        height=220,
+        width=600,
+        height=170,
         title="Modified Audio",
     ).add_selection(
         resize
@@ -87,8 +91,8 @@ def plot_animation(df1, df2, resize):
         x=alt.X('time:T', axis=alt.Axis(title='time', labels=False)),
         y=alt.Y('signal:Q', axis=alt.Axis(title='Amplitude'))
     ).properties(
-        width=550,
-        height=230,
+        width=600,
+        height=170,
         title="Original Audio"
     ).add_selection(
         resize
@@ -98,8 +102,8 @@ def plot_animation(df1, df2, resize):
         x=alt.X('time:T', axis=alt.Axis(title='time', labels=False)),
         y=alt.Y('signal:Q', axis=alt.Axis(title='Amplitude'))
     ).properties(
-        width=550,
-        height=230,
+        width=600,
+        height=170,
         title="Modified Audio"
     ).add_selection(
         resize

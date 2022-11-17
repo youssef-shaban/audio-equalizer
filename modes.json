@@ -2,65 +2,39 @@
   "modes": ["Equalizer", "Music", "Vowels", "Pitch Shift"],
   "Equalizer": {
     "num_sliders": 10,
-    "sliders": [
-      { "label": "80Hz", "range": [[0, 80]] },
-      { "label": "240Hz", "range": [[81, 240]] },
-      { "label": "500Hz", "range": [[241, 500]] },
-      { "label": "800Hz", "range": [[501, 800]] },
-      { "label": "1.4KHz", "range": [[801, 1400]] },
-      { "label": "2KHz", "range": [[1401, 2000]] },
-      { "label": "3.5KHz", "range": [[2001, 3500]] },
-      { "label": "6KHz", "range": [[3501, 6000]] },
-      { "label": "9KHz", "range": [[6001, 9000]] },
-      { "label": "14KHz", "range": [[9001, 14000]] }
-    ]
+    "sliders": []
   },
   "Music": {
     "num_sliders": 3,
     "sliders": [
-      { "label": "Flute", "range": [[0, 700]] },
-      { "label": "Violin", "range": [[700, 2500]] },
-      { "label": "Trombone", "range": [[2500, 4000]] }
+      { "label": "Flute", "range": [[0, 700]],"max_value": 15,"min_value": -15.0,"default":0.0},
+      { "label": "Violin", "range": [[700, 2500]],"max_value": 15,"min_value": -15.0,"default":0.0},
+      { "label": "Trombone", "range": [[2500, 4000]],"max_value": 15,"min_value": -15.0,"default":0.0 }
     ]
   },
   "Vowels": {
-    "num_sliders": 5,
+    "num_sliders": 2,
     "sliders": [
       {
-        "label": "i",
+        "label": "s",
         "range": [
-          [200, 700],
-          [3700, 5000]
-        ]
+          [4500, 8500]
+        ],"max_value": 15.0,"min_value": -15.0,"default":0.0
       },
       {
-        "label": "e",
+        "label": "y",
         "range": [
-          [200, 700],
-          [2000, 4500]
-        ]
-      },
-      {
-        "label": "a",
-        "range": [[250, 1900]]
-      },
-      {
-        "label": "ɑ",
-        "range": [
-          [300, 600],
-          [900, 1700]
-        ]
-      },
-      {
-        "label": "sh",
-        "range": [
-          [1200, 9000]
-        ]
+          [600, 1800]
+        ],"max_value": 15.0,"min_value": -15.0,"default":0.0
       }
     ]
   },
   "Pitch Shift": {
     "num_sliders": 2,
-    "sliders": ["Shifting", "Stretch"]
+    "sliders": [{
+      "label": "Shift","max_value": 5.0,"min_value": -5.0,"default":0.0
+    },{
+      "label": "Stretch","max_value": 5.0,"min_value": 0.1,"default":1.0
+    }]
   }
 }

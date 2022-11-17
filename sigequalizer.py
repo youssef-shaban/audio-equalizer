@@ -8,6 +8,7 @@ from utils import equalizer, initial_time_graph, plot_animation, plot_spectrogra
     pitch_shifting, basic_mode
 import json
 import altair as alt
+import matplotlib.pyplot as plt
 import streamlit_nested_layout
 
 # App Configurations
@@ -19,11 +20,11 @@ st.set_page_config(
 
 
 # Adding our Header
-header_code = (open("header.html", 'r', encoding='utf-8')).read()
+header_code = (open("templates/header.html", 'r', encoding='utf-8')).read()
 st.markdown(f'{header_code}', unsafe_allow_html=True)
 
 # Adding our Styling
-style = (open("style.css", 'r', encoding='utf-8')).read()
+style = (open("static/css/style.css", 'r', encoding='utf-8')).read()
 st.markdown(f'{style}', unsafe_allow_html=True)
 
 with open("modes.json") as infile:
@@ -59,7 +60,6 @@ with left_col:
     forward_btn = placeholder.button('Start')
     col_sub_left_r.write('Graph Speed')
     speed_slider = col_sub_left_r.slider('Graph Speed', label_visibility='collapsed', step=1, min_value=1, max_value=5)
-    active_graph = st.selectbox('Graphs', ['Time', 'Spectrogram', 'Both'])
 
 if mode == "vowels":
     st.markdown("""
@@ -79,17 +79,12 @@ elif mode == "music":
             """, unsafe_allow_html=True)
 
 
-graph_pos = right_col.empty()
-with right_col:
-    bottomCols = [(2 / data[mode]["num_sliders"]) for i in range(data[mode]["num_sliders"])]
-    bottomCols = st.columns([0.7, *bottomCols])
-    for index, i in enumerate(bottomCols[1:]):
-        with i:
-            if mode == "Pitch Shift":
-                create_sliders(index)
-            else:
-                VerticalSlider(default=0.0, minValue=-15.0, maxValue=15.0, step=0.1, height=200,
-                               label=data[mode]["sliders"][index]["label"], key=f"slider{mode}{index}")
+bottomCols = [(2 / data[mode]["num_sliders"]) for i in range(data[mode]["num_sliders"])]
+bottomCols = st.columns([0.7, *bottomCols])
+for index, i in enumerate(bottomCols[1:]):
+    with i:
+            VerticalSlider(default=data[mode]["sliders"][index]["default"], minValue=data[mode]["sliders"][index]["min_value"], maxValue=data[mode]["sliders"][index]["max_value"], step=0.1, height=200,
+                           label=data[mode]["sliders"][index]["label"], key=f"slider{mode}{index}")
 
 
 if uploader:
@@ -161,40 +156,38 @@ def plot_spectrogram():
     spectrogram_2.plotly_chart(fig2, use_container_width=True)
 
 
-with graph_pos:
-    if active_graph == 'Time':
-        plot_time()
-    elif active_graph == 'Spectrogram':
+with right_col:
+    plot_time()
+    show_hist = left_col.checkbox('Show Spectrogram')
+    spectrogram_1, spectrogram_2 = st.columns(2)
+    if show_hist:
         plot_spectrogram()
-    elif active_graph == 'Both':
-        expand_pos, _ = left_col.columns([1.5, 2])
-        expand_graphs = expand_pos.checkbox('Expand Graphs')
-        if expand_graphs:
-            with st.container():
-                plot_time()
-                plot_spectrogram()
-        else:
-            time_graph, spectrogram = st.columns(2)
-            with time_graph:
-                plot_time()
-            with spectrogram:
-                plot_spectrogram()
+    else:
+        plt.style.use('ggplot')
+        fig1, ax = plt.subplots()
+        fig1.set_figheight(4.2)
+        fig1.set_figwidth(10)
+        spectrogram_1.pyplot(fig1, clear_figure=True)
+        fig2, ax = plt.subplots()
+        fig2.set_figheight(4.2)
+        fig2.set_figwidth(10)
+        spectrogram_2.pyplot(fig2, clear_figure=True)
 
-    if forward_btn:
-        placeholder.empty()
-        pause_btn = placeholder.button('Pause')
-        N = plotted_rec_data.shape[0]
-        burst = int(len(plotted_ori_data) / 4)
-        for i in range(st.session_state["graph_position"] + burst, N - burst, speed_slider):
-            st.session_state["graph_position"] = i
-            step_df_rec = plotted_rec_data.iloc[i:burst + i]
-            step_df_ori = plotted_ori_data.iloc[i:burst + i]
-            chart = plot_animation(step_df_ori, step_df_rec, st.session_state.resize)
-            line_plot_rec.altair_chart(chart, use_container_width=True)
-        position = st.session_state["graph_position"]
-        line_chart = initial_time_graph(plotted_ori_data, plotted_rec_data, st.session_state.resize)
-        line_plot_rec.altair_chart(line_chart)
-        st.session_state["graph_position"] = 0
+if forward_btn:
+    placeholder.empty()
+    pause_btn = placeholder.button('Pause')
+    N = plotted_rec_data.shape[0]
+    burst = int(len(plotted_ori_data) / 4)
+    for i in range(st.session_state["graph_position"] + burst, N - burst, speed_slider):
+        st.session_state["graph_position"] = i
+        step_df_rec = plotted_rec_data.iloc[i:burst + i]
+        step_df_ori = plotted_ori_data.iloc[i:burst + i]
+        chart = plot_animation(step_df_ori, step_df_rec, st.session_state.resize)
+        line_plot_rec.altair_chart(chart, use_container_width=True)
+    position = st.session_state["graph_position"]
+    line_chart = initial_time_graph(plotted_ori_data, plotted_rec_data, st.session_state.resize)
+    line_plot_rec.altair_chart(line_chart)
+    st.session_state["graph_position"] = 0
 
 try:
     if pause_btn:
